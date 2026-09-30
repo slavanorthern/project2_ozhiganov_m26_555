@@ -1,10 +1,11 @@
 import json
-from pathlib import Path
+import os
 
-DATA_DIR = Path("data")
+from src.primitive_db.constants import DATA_DIR
 
 
 def load_metadata(filepath):
+    """Load database metadata from a JSON file."""
     try:
         with open(filepath, encoding="utf-8") as file:
             return json.load(file)
@@ -13,12 +14,14 @@ def load_metadata(filepath):
 
 
 def save_metadata(filepath, data):
+    """Save database metadata to a JSON file."""
     with open(filepath, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
 def load_table_data(table_name):
-    filepath = DATA_DIR / f"{table_name}.json"
+    """Load table rows from its JSON file."""
+    filepath = os.path.join(DATA_DIR, f"{table_name}.json")
 
     try:
         with open(filepath, encoding="utf-8") as file:
@@ -28,9 +31,10 @@ def load_table_data(table_name):
 
 
 def save_table_data(table_name, data):
-    DATA_DIR.mkdir(exist_ok=True)
+    """Save table rows to its JSON file."""
+    os.makedirs(DATA_DIR, exist_ok=True)
 
-    filepath = DATA_DIR / f"{table_name}.json"
+    filepath = os.path.join(DATA_DIR, f"{table_name}.json")
 
     with open(filepath, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)

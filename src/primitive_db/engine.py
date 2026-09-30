@@ -3,6 +3,7 @@ import shlex
 import prompt
 from prettytable import PrettyTable
 
+from src.primitive_db.constants import META_FILE
 from src.primitive_db.core import (
     create_table,
     delete,
@@ -19,10 +20,9 @@ from src.primitive_db.utils import (
     save_table_data,
 )
 
-METADATA_FILE = "db_meta.json"
-
 
 def print_help():
+    """Print available database commands."""
     print("\n***Операции с данными***")
     print("Функции:")
     print(
@@ -48,6 +48,7 @@ def print_help():
 
 
 def print_table(rows):
+    """Print rows as a formatted console table."""
     if not rows:
         print("Записи не найдены.")
         return
@@ -62,11 +63,12 @@ def print_table(rows):
 
 
 def run():
+    """Run the main database command loop."""
     print("\n***Операции с данными***")
     print_help()
 
     while True:
-        metadata = load_metadata(METADATA_FILE)
+        metadata = load_metadata(META_FILE)
         user_input = prompt.string(">>>Введите команду: ")
 
         try:
@@ -89,10 +91,10 @@ def run():
             columns = args[2:]
 
             old_metadata = metadata.copy()
-            metadata = create_table(metadata, table_name, columns)
+            result = create_table(metadata, table_name, columns)
 
-            if metadata != old_metadata:
-                save_metadata(METADATA_FILE, metadata)
+            if result is not None and result != old_metadata:
+                save_metadata(META_FILE, result)
 
         elif command == "drop_table":
             if len(args) != 2:
@@ -100,10 +102,10 @@ def run():
                 continue
 
             old_metadata = metadata.copy()
-            metadata = drop_table(metadata, args[1])
+            result = drop_table(metadata, args[1])
 
-            if metadata != old_metadata:
-                save_metadata(METADATA_FILE, metadata)
+            if result is not None and result != old_metadata:
+                save_metadata(META_FILE, result)
 
         elif command == "list_tables":
             if metadata:
@@ -139,9 +141,11 @@ def run():
 
             if len(args) == 3:
                 rows = select(table_data)
+
             elif len(args) >= 7 and args[3] == "where":
                 where_clause = parse_condition(args[4:7])
                 rows = select(table_data, where_clause)
+
             else:
                 print("Некорректное значение. Попробуйте снова.")
                 continue
@@ -160,19 +164,21 @@ def run():
             where_clause = parse_condition(args[where_index + 1:])
 
             table_data = load_table_data(table_name)
-            table_data, updated_ids = update(
+            result = update(
                 table_data,
                 set_clause,
                 where_clause,
             )
 
-            save_table_data(table_name, table_data)
+            if result is not None:
+                table_data, updated_ids = result
+                save_table_data(table_name, table_data)
 
-            for row_id in updated_ids:
-                print(
-                    f'Запись с ID={row_id} в таблице "{table_name}" '
-                    "успешно обновлена."
-                )
+                for row_id in updated_ids:
+                    print(
+                        f'Запись с ID={row_id} в таблице "{table_name}" '
+                        "успешно обновлена."
+                    )
 
         elif command == "delete":
             if len(args) < 7 or args[1] != "from" or args[3] != "where":
@@ -183,15 +189,17 @@ def run():
             where_clause = parse_condition(args[4:7])
 
             table_data = load_table_data(table_name)
-            table_data, deleted_ids = delete(table_data, where_clause)
+            result = delete(table_data, where_clause)
 
-            save_table_data(table_name, table_data)
+            if result is not None:
+                table_data, deleted_ids = result
+                save_table_data(table_name, table_data)
 
-            for row_id in deleted_ids:
-                print(
-                    f'Запись с ID={row_id} успешно удалена '
-                    f'из таблицы "{table_name}".'
-                )
+                for row_id in deleted_ids:
+                    print(
+                        f'Запись с ID={row_id} успешно удалена '
+                        f'из таблицы "{table_name}".'
+                    )
 
         elif command == "info":
             if len(args) != 2:

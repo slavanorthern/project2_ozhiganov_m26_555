@@ -1,25 +1,31 @@
+from src.primitive_db.constants import VALID_TYPES
+from src.primitive_db.decorators import (
+    confirm_action,
+    create_cacher,
+    handle_db_errors,
+    log_time,
+)
 from src.primitive_db.utils import load_table_data
 
-VALID_TYPES = {"int", "str", "bool"}
+cache_result = create_cacher()
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
+    """Create a table and add its schema to metadata."""
     if table_name in metadata:
-        print(f'Ошибка: Таблица "{table_name}" уже существует.')
-        return metadata
+        raise ValueError(f'Таблица "{table_name}" уже существует')
 
     table_columns = []
 
     for column in columns:
         if ":" not in column:
-            print(f"Некорректное значение: {column}. Попробуйте снова.")
-            return metadata
+            raise ValueError(f"Некорректное значение: {column}")
 
         column_name, column_type = column.split(":", 1)
 
         if not column_name or column_type not in VALID_TYPES:
-            print(f"Некорректное значение: {column}. Попробуйте снова.")
-            return metadata
+            raise ValueError(f"Некорректное значение: {column}")
 
         table_columns.append(
             {
@@ -54,10 +60,12 @@ def create_table(metadata, table_name, columns):
     return metadata
 
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
+    """Delete a table from metadata."""
     if table_name not in metadata:
-        print(f'Ошибка: Таблица "{table_name}" не существует.')
-        return metadata
+        raise KeyError(table_name)
 
     del metadata[table_name]
 
@@ -67,6 +75,7 @@ def drop_table(metadata, table_name):
 
 
 def _is_valid_type(value, column_type):
+    """Check whether a value matches the required column type."""
     if column_type == "int":
         return isinstance(value, int) and not isinstance(value, bool)
 
@@ -79,22 +88,22 @@ def _is_valid_type(value, column_type):
     return False
 
 
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
+    """Insert a new row into a table."""
     if table_name not in metadata:
-        print(f'Ошибка: Таблица "{table_name}" не существует.')
-        return None
+        raise KeyError(table_name)
 
     columns = metadata[table_name]
     user_columns = columns[1:]
 
     if len(values) != len(user_columns):
-        print("Некорректное количество значений. Попробуйте снова.")
-        return None
+        raise ValueError("Некорректное количество значений")
 
     for column, value in zip(user_columns, values):
         if not _is_valid_type(value, column["type"]):
-            print(f"Некорректное значение: {value}. Попробуйте снова.")
-            return None
+            raise ValueError(f"Некорректное значение: {value}")
 
     table_data = load_table_data(table_name)
 
@@ -118,27 +127,48 @@ def insert(metadata, table_name, values):
     return table_data
 
 
+@handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
-    if where_clause is None:
-        return table_data
-
-    return [
-        row
+    """Select table rows, optionally filtering by a condition."""
+    data_key = tuple(
+        tuple(sorted(row.items()))
         for row in table_data
-        if all(
-            row.get(key) == value
-            for key, value in where_clause.items()
-        )
-    ]
+    )
+
+    where_key = (
+        tuple(sorted(where_clause.items()))
+        if where_clause
+        else None
+    )
+
+    key = (data_key, where_key)
+
+    def get_result():
+        if where_clause is None:
+            return [row.copy() for row in table_data]
+
+        return [
+            row.copy()
+            for row in table_data
+            if all(
+                row.get(column) == value
+                for column, value in where_clause.items()
+            )
+        ]
+
+    return cache_result(key, get_result)
 
 
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
+    """Update rows matching a condition."""
     updated_ids = []
 
     for row in table_data:
         if all(
-            row.get(key) == value
-            for key, value in where_clause.items()
+            row.get(column) == value
+            for column, value in where_clause.items()
         ):
             row.update(set_clause)
             updated_ids.append(row["ID"])
@@ -146,13 +176,16 @@ def update(table_data, set_clause, where_clause):
     return table_data, updated_ids
 
 
+@handle_db_errors
+@confirm_action("удаление записи")
 def delete(table_data, where_clause):
+    """Delete rows matching a condition."""
     deleted_ids = [
         row["ID"]
         for row in table_data
         if all(
-            row.get(key) == value
-            for key, value in where_clause.items()
+            row.get(column) == value
+            for column, value in where_clause.items()
         )
     ]
 
@@ -160,8 +193,8 @@ def delete(table_data, where_clause):
         row
         for row in table_data
         if not all(
-            row.get(key) == value
-            for key, value in where_clause.items()
+            row.get(column) == value
+            for column, value in where_clause.items()
         )
     ]
 
