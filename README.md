@@ -61,4 +61,4 @@ info users
 
 ## Демонстрация работы
 
-[Посмотреть запись в asciinema](https://asciinema.org/a/MyICwmW9GlN1jPOD)
+[Посмотреть запись в asciinema](https://asciinema.org/a/sjZnUzytyjJ58szo)
