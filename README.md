@@ -59,6 +59,27 @@ delete from users where ID = 1
 info users
 ```
 
-## Демонстрация работы
+## Декораторы и замыкания
 
-[Посмотреть запись в asciinema](https://asciinema.org/a/sjZnUzytyjJ58szo)
+В проект добавлены:
+
+- централизованная обработка ошибок через `handle_db_errors`
+- подтверждение опасных операций через `confirm_action`
+- измерение времени выполнения через `log_time`
+- кэширование одинаковых запросов `select` через замыкание `create_cacher`
+
+Для удаления записи и таблицы требуется подтверждение пользователя.
+
+## Демонстрации
+
+### Управление таблицами
+
+[Посмотреть запись в asciinema](https://asciinema.org/a/MyICwmW9GlN1jPOD)
+
+### CRUD-операции
+
+[Посмотреть CRUD-запись в asciinema](https://asciinema.org/a/sjZnUzytyjJ58szo)
+
+### Декораторы и финальная версия
+
+[Посмотреть финальную запись в asciinema](https://asciinema.org/a/IMeobDLNTQWwAjvW)
