@@ -14,7 +14,8 @@ cache_result = create_cacher()
 def create_table(metadata, table_name, columns):
     """Create a table and add its schema to metadata."""
     if table_name in metadata:
-        raise ValueError(f'Таблица "{table_name}" уже существует')
+        print(f'Ошибка: Таблица "{table_name}" уже существует.')
+        return metadata
 
     table_columns = []
 
@@ -96,7 +97,12 @@ def insert(metadata, table_name, values):
         raise KeyError(table_name)
 
     columns = metadata[table_name]
-    user_columns = columns[1:]
+
+    user_columns = [
+        column
+        for column in columns
+        if column["name"] != "ID"
+    ]
 
     if len(values) != len(user_columns):
         raise ValueError("Некорректное количество значений")

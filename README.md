@@ -2,15 +2,13 @@
 
 Консольное приложение, имитирующее работу простой базы данных.
 
-## Запуск
-
-Установка зависимостей:
+## Установка
 
 ```bash
 make install
 ```
 
-Запуск базы данных:
+## Запуск
 
 ```bash
 poetry run database
@@ -36,16 +34,23 @@ poetry run database
 
 ## CRUD-операции
 
-Доступные команды:
-
 - `insert into <имя_таблицы> values (<значение1>, <значение2>, ...)` — добавить запись
 - `select from <имя_таблицы>` — показать все записи
-- `select from <имя_таблицы> where <столбец> = <значение>` — выбрать записи по условию
+- `select from <имя_таблицы> where <столбец> = <значение>` — выбрать записи
 - `update <имя_таблицы> set <столбец> = <значение> where <столбец> = <значение>` — обновить запись
 - `delete from <имя_таблицы> where <столбец> = <значение>` — удалить запись
-- `info <имя_таблицы>` — показать информацию о таблице
-- `help` — показать справочную информацию
-- `exit` — выйти из программы
+- `info <имя_таблицы>` — информация о таблице
+
+## Декораторы и замыкания
+
+В проекте реализованы:
+
+- `handle_db_errors` — централизованная обработка ошибок
+- `confirm_action` — подтверждение опасных операций
+- `log_time` — измерение времени выполнения
+- `create_cacher` — кэширование одинаковых запросов `select`
+
+Удаление записи и таблицы требует подтверждения пользователя.
 
 ## Пример использования
 
@@ -57,29 +62,19 @@ select from users where age = 28
 update users set age = 29 where name = "Sergei"
 delete from users where ID = 1
 info users
+drop_table users
 ```
-
-## Декораторы и замыкания
-
-В проект добавлены:
-
-- централизованная обработка ошибок через `handle_db_errors`
-- подтверждение опасных операций через `confirm_action`
-- измерение времени выполнения через `log_time`
-- кэширование одинаковых запросов `select` через замыкание `create_cacher`
-
-Для удаления записи и таблицы требуется подтверждение пользователя.
 
 ## Демонстрации
 
 ### Управление таблицами
 
-[Посмотреть запись в asciinema](https://asciinema.org/a/MyICwmW9GlN1jPOD)
+[![asciicast](https://asciinema.org/a/MyICwmW9GlN1jPOD.svg)](https://asciinema.org/a/MyICwmW9GlN1jPOD)
 
 ### CRUD-операции
 
-[Посмотреть CRUD-запись в asciinema](https://asciinema.org/a/sjZnUzytyjJ58szo)
+[![asciicast](https://asciinema.org/a/sjZnUzytyjJ58szo.svg)](https://asciinema.org/a/sjZnUzytyjJ58szo)
 
 ### Декораторы и финальная версия
 
-[Посмотреть финальную запись в asciinema](https://asciinema.org/a/IMeobDLNTQWwAjvW)
+[![asciicast](https://asciinema.org/a/IMeobDLNTQWwAjvW.svg)](https://asciinema.org/a/IMeobDLNTQWwAjvW)

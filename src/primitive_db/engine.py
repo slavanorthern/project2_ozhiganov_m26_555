@@ -26,6 +26,12 @@ def print_help():
     print("\n***Операции с данными***")
     print("Функции:")
     print(
+        "<command> create_table <имя_таблицы> "
+        "<столбец1:тип> <столбец2:тип> ... - создать таблицу."
+    )
+    print("<command> list_tables - показать список всех таблиц.")
+    print("<command> drop_table <имя_таблицы> - удалить таблицу.")
+    print(
         "<command> insert into <имя_таблицы> values "
         "(<значение1>, <значение2>, ...) - создать запись."
     )
@@ -101,6 +107,10 @@ def run():
                 print("Некорректное значение. Попробуйте снова.")
                 continue
 
+            if args[1] not in metadata:
+                print(f'Ошибка: Таблица "{args[1]}" не существует.')
+                continue
+
             old_metadata = metadata.copy()
             result = drop_table(metadata, args[1])
 
@@ -137,6 +147,11 @@ def run():
                 continue
 
             table_name = args[2]
+
+            if table_name not in metadata:
+                print(f'Ошибка: Таблица "{table_name}" не существует.')
+                continue
+
             table_data = load_table_data(table_name)
 
             if len(args) == 3:
@@ -158,12 +173,18 @@ def run():
                 continue
 
             table_name = args[1]
+
+            if table_name not in metadata:
+                print(f'Ошибка: Таблица "{table_name}" не существует.')
+                continue
+
             where_index = args.index("where")
 
             set_clause = parse_condition(args[3:where_index])
             where_clause = parse_condition(args[where_index + 1:])
 
             table_data = load_table_data(table_name)
+
             result = update(
                 table_data,
                 set_clause,
@@ -186,6 +207,11 @@ def run():
                 continue
 
             table_name = args[2]
+
+            if table_name not in metadata:
+                print(f'Ошибка: Таблица "{table_name}" не существует.')
+                continue
+
             where_clause = parse_condition(args[4:7])
 
             table_data = load_table_data(table_name)

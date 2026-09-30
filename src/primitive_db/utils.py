@@ -20,7 +20,7 @@ def save_metadata(filepath, data):
 
 
 def load_table_data(table_name):
-    """Load table rows from its JSON file."""
+    """Load table data from its JSON file."""
     filepath = os.path.join(DATA_DIR, f"{table_name}.json")
 
     try:
@@ -31,7 +31,7 @@ def load_table_data(table_name):
 
 
 def save_table_data(table_name, data):
-    """Save table rows to its JSON file."""
+    """Save table data to its JSON file."""
     os.makedirs(DATA_DIR, exist_ok=True)
 
     filepath = os.path.join(DATA_DIR, f"{table_name}.json")
